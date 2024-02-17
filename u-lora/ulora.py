@@ -77,7 +77,7 @@ class LoRa(object):
         channel: SPI channel, check SPIConfig for preconfigured names
         interrupt: GPIO interrupt pin
         this_address: set address for this device [0-254]
-        cs_pin: chip select pin from microcontroller 
+        cs_pin: chip select pin from microcontroller
         reset_pin: the GPIO used to reset the RFM9x if connected
         freq: frequency in MHz
         tx_power: transmit power in dBm
@@ -86,7 +86,7 @@ class LoRa(object):
         acks: if True, request acknowledgments
         crypto: if desired, an instance of ucrypto AES (https://docs.pycom.io/firmwareapi/micropython/ucrypto/) - not tested
         """
-        
+
         self._spi_channel = spi_channel
         self._interrupt = interrupt
         self._cs_pin = cs_pin
@@ -109,12 +109,12 @@ class LoRa(object):
         self.send_retries = 2
         self.wait_packet_sent_timeout = 0.2
         self.retry_timeout = 0.2
-        
+
         # Setup the module
 #        gpio_interrupt = Pin(self._interrupt, Pin.IN, Pin.PULL_DOWN)
         gpio_interrupt = Pin(self._interrupt, Pin.IN)
         gpio_interrupt.irq(trigger=Pin.IRQ_RISING, handler=self._handle_interrupt)
-        
+
         # reset the board
         if reset_pin:
             gpio_reset = Pin(reset_pin, Pin.OUT)
@@ -130,18 +130,18 @@ class LoRa(object):
         # cs gpio pin
         self.cs = Pin(self._cs_pin, Pin.OUT)
         self.cs.value(1)
-        
+
         # set mode
         self._spi_write(REG_01_OP_MODE, MODE_SLEEP | LONG_RANGE_MODE)
         time.sleep(0.1)
-        
+
         # check if mode is set
         assert self._spi_read(REG_01_OP_MODE) == (MODE_SLEEP | LONG_RANGE_MODE), \
             "LoRa initialization failed"
 
         self._spi_write(REG_0E_FIFO_TX_BASE_ADDR, 0)
         self._spi_write(REG_0F_FIFO_RX_BASE_ADDR, 0)
-        
+
         self.set_mode_idle()
 
         # set modem config (Bw125Cr45Sf128)
@@ -158,7 +158,7 @@ class LoRa(object):
         self._spi_write(REG_06_FRF_MSB, (frf >> 16) & 0xff)
         self._spi_write(REG_07_FRF_MID, (frf >> 8) & 0xff)
         self._spi_write(REG_08_FRF_LSB, frf & 0xff)
-        
+
         # Set tx power
         if self._tx_power < 5:
             self._tx_power = 5
@@ -172,7 +172,7 @@ class LoRa(object):
             self._spi_write(REG_4D_PA_DAC, PA_DAC_DISABLE)
 
         self._spi_write(REG_09_PA_CONFIG, PA_SELECT | (self._tx_power - 5))
-        
+
     def on_recv(self, message):
         # This should be overridden by the user
         pass
@@ -193,7 +193,7 @@ class LoRa(object):
             self._spi_write(REG_01_OP_MODE, MODE_RXCONTINUOUS)
             self._spi_write(REG_40_DIO_MAPPING1, 0x00)  # Interrupt on RxDone
             self._mode = MODE_RXCONTINUOUS
-            
+
     def set_mode_cad(self):
         if self._mode != MODE_CAD:
             self._spi_write(REG_01_OP_MODE, MODE_CAD)
@@ -207,7 +207,7 @@ class LoRa(object):
             yield
 
         return self._cad
-    
+
     def wait_cad(self):
         if not self.cad_timeout:
             return True
@@ -305,7 +305,7 @@ class LoRa(object):
             data = self.spi.read(length + 1, register)[1:]
         self.cs.value(1)
         return data
-        
+
     def _decrypt(self, message):
         decrypted_msg = self.crypto.decrypt(message)
         msg_length = decrypted_msg[0]
