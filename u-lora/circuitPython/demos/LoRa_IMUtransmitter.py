@@ -22,9 +22,6 @@ while True:
         "Temperature: %.2f C"%mpu.temperature
 
     print(message)
-    
+
     rfm9x.send(message)
     #time.sleep(1)
-
-
-
