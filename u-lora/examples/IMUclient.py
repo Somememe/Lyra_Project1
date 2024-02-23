@@ -1,6 +1,7 @@
 from time import sleep
 from ulora import LoRa, ModemConfig, SPIConfig
 import adafruit_mpu6050
+import board
 
 # Lora Parameters
 RFM95_RST = 27
@@ -19,10 +20,9 @@ mpu = adafruit_mpu6050.MPU6050(i2c)
 
 # loop and send data
 while True:
-    print("Acceleration: X:%.2f, Y: %.2f, Z: %.2f m/s^2"%(mpu.acceleration))
-    print("Gyro X:%.2f, Y: %.2f, Z: %.2f degrees/s"%(mpu.gyro))
-    print("Temperature: %.2f C"%mpu.temperature)
-    print("")
-    lora.send_to_wait("This is a test message", SERVER_ADDRESS)
+    [Ax, Ay, Az] = mpu.acceleration
+    [Gx, Gy, Gz] = mpu.gyro
+    t = mpu.temperature
+    lora.send_to_wait(f"{Ax},{Ay},{Az},{Gx},{Gy},{Gz},{t}", SERVER_ADDRESS)
     print("sent")
     sleep(10)
